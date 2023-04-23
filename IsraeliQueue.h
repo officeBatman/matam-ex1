@@ -25,8 +25,8 @@ typedef enum { ISRAELIQUEUE_SUCCESS, ISRAELIQUEUE_ALLOC_FAILED, ISRAELIQUEUE_BAD
  * to the new object. In case of failure, return NULL.*/
 IsraeliQueue IsraeliQueueCreate(FriendshipFunction *, ComparisonFunction, int, int);
 
-/**Returns a new queue with the same elements as the parameter. If the parameter is NULL,
- * NULL is returned.*/
+/**Returns a new queue with the same elements as the parameter. If the parameter is NULL or any error occured during
+ * the execution of the function, NULL is returned.*/
 IsraeliQueue IsraeliQueueClone(IsraeliQueue q);
 
 /**@param IsraeliQueue: an IsraeliQueue created by IsraeliQueueCreate

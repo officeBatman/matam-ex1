@@ -303,13 +303,16 @@ IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue q) {
     return IsraeliQueueImprovePositionsRecursive(q, &q->m_list);
 }
 
-/**@param q_arr: a NULL-terminated array of IsraeliQueues
- * @param ComparisonFunction: a comparison function for the merged queue
- *
- * Merges all queues in q_arr into a single new queue, with parameters the parameters described
- * in the exercise. Each queue in q_arr enqueues its head in the merged queue, then lets the next
- * one enqueue an item, in the order defined by q_arr. In the event of any error during execution, return NULL.*/
-IsraeliQueue IsraeliQueueMerge(IsraeliQueue* qarr, ComparisonFunction compare) {
+typedef struct MergeRet {
+    FriendshipFunction* friendshipFunctions;
+    int friendshipFunctionsSize;
+    float friendshipThreshold;
+    float rivalThreshold;
+    bool error;
+} MergeRet;
+
+MergeRet MergeFriendshipsAndThresholds(IsraeliQueue* qarr) {
+    MergeRet ret = {0};
     int i = 0;
     int j = 0;
     int k = 0;
@@ -323,7 +326,8 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* qarr, ComparisonFunction compare) {
 
     // Fail if malloc failed.
     if (!friendships) {
-        return NULL;
+        ret.error = true;
+        return ret;
     }
     
     // Initialize friendship array, and thresholds.
@@ -340,10 +344,25 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* qarr, ComparisonFunction compare) {
     friendshipThreshold /= i;
     rivalryThreshold /= i;
 
-    IsraeliQueue mergedQueue = IsraeliQueueCreate(friendships, compare, friendshipThreshold, rivalryThreshold);
+    ret.friendshipFunctions = friendships;
+    ret.friendshipFunctionsSize = friendshipsSize;
+    ret.friendshipThreshold = friendshipThreshold;
+    ret.rivalThreshold = rivalryThreshold;
+    return ret;
+}
+
+IsraeliQueue IsraeliQueueMerge(IsraeliQueue* qarr, ComparisonFunction compare) {
+    int i = 0;
+
+    MergeRet results = MergeFriendshipsAndThresholds(qarr);
+
+    IsraeliQueue mergedQueue = IsraeliQueueCreate(
+            results.friendshipFunctions, compare,
+            results.friendshipThreshold, results.rivalThreshold
+    );
 
     // The constructor copies the friendships array, so we can free it.
-    free(friendships);
+    free(results.friendshipFunctions);
 
     // Fail if queue creation failed.
     if (!mergedQueue) {

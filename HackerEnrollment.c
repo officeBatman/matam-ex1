@@ -1,21 +1,71 @@
 #include "HackerEnrollment.h"
 
+#include <stdbool.h>
+
+#define BUFFER_SIZE 256
+#define COURSE_NUM_LEN 6
+#define ID_LEN 9
+#define SPACE_CHAR ' '
+
+
 //helper functions
-Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
+int getLineNum(FILE* file)
 {
-    char* buffer[BUFFER_SIZE] = { 0 };
-    int studentsAmount = getLineNum(studentsFile);
-    Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
-    if(!students)
+    int lineNum = 0;
+    char buffer[BUFFER_SIZE] = { 0 };
+
+    while(fgets(buffer, BUFFER_SIZE, file))
     {
-        return NULL;
+        lineNum++;
     }
 
-    int studentsAmount = 0;
+    return lineNum;
+}
 
-    while(fgets(buffer, BUFFER_SIZE, students))
+int countElementsInLine(char* line)
+{
+    int elementAmount = 0;
+    while(line)
     {
-        studentsAmount++;
+        if(SPACE_CHAR == line)
+        {
+            elementAmount++;
+        }
+        line++;
+    }
+
+    return elementAmount == -1 ? 0 : elementAmount - 1;
+}
+
+Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
+{
+    char buffer[BUFFER_SIZE + 1] = { 0 };
+    int i = 0;
+    int studentsAmount = getLineNum(studentsFile);
+    Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
+    Student student;
+
+    student.m_name = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+    student.m_surname = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+    student.m_city = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+    student.m_department = (char*)malloc(sizeof(char) * BUFFER_SIZE);
+
+    if(!(students && student.m_name && student.m_surname && student.m_city && student.m_department))
+    {
+        free(students);
+        free(student.m_name);
+        free(student.m_surname);
+        free(student.m_city);
+        free(student.m_department);
+    }
+
+    while(fgets(buffer, BUFFER_SIZE, studentsFile))
+    {
+        sscanf(buffer, "%s %d %d %s %s %s %s", &student.m_ID, &student.m_credits, &student.m_GPA, &student.m_name,
+                                               &student.m_surname, &student.m_city, &student.m_department);
+
+        students[i] = student;
+        i++;
     }
 
     *studentsSize = studentsAmount;
@@ -23,12 +73,142 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 
 Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
 {
+    char buffer[BUFFER_SIZE + 1] = { 0 };
+    int i = 0;
+    int coursesAmount = getLineNum(coursesFile);
+    Course* courses = (Course*)malloc(sizeof(Course) * coursesAmount);
+    Course course;
+    if(!courses)
+    {
+        return NULL;
+    }
 
+
+    while(fgets(buffer, BUFFER_SIZE, coursesFile))
+    {
+        sscanf(buffer, "%d %d", &course.m_number, &course.m_size);
+
+        courses[i] = course;
+        i++;
+    }
+
+    *coursesSize = coursesAmount;
 }
 
 Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
 {
+    char buffer[BUFFER_SIZE + 1] = { 0 };
+    char tempBuffer[ID_LEN] = { 0 };
 
+    int hackersAmount = getLineNum(hackersFile) / 4;
+    Hacker* hackers = (Hacker*)malloc(sizeof(Hacker) * hackersAmount);
+    Hacker hacker;
+    if(!hackers)
+    {
+        return NULL;
+    }
+
+    for(int i = 0; i < hackersAmount; i++)
+    {
+        fgets(buffer, BUFFER_SIZE, hackersFile);  
+        sscanf(buffer, "%s", &hacker.m_ID);
+
+        fgets(buffer, BUFFER_SIZE, hackersFile);
+        hacker.m_courseNums = (unsigned int*)malloc(sizeof(unsigned int) * countElementsInLine(buffer));
+        if(!hacker.m_courseNums)
+        {
+            return NULL;
+        }
+        for(int j = 0; j < countElementsInLine(buffer); j++)
+        {
+            memcpy(tempBuffer, buffer + j * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
+            sscanf(tempBuffer, "%d", &hacker.m_courseNums[j]);
+        }
+
+        fgets(buffer, BUFFER_SIZE, hackersFile);
+        hacker.m_friends = (char*)malloc(sizeof(Student) * countElementsInLine(buffer));
+        if(!hacker.m_friends)
+        {
+            return NULL;
+        }
+        for(int j = 0; j < countElementsInLine(buffer); j++)
+        {
+            memcpy(tempBuffer, buffer + j * (ID_LEN + 1), ID_LEN);
+            sscanf(tempBuffer, "%s", &hacker.m_friends[j]);
+        }
+
+        fgets(buffer, BUFFER_SIZE, hackersFile);
+        hacker.m_rivals = (Student*)malloc(sizeof(Student) * countElementsInLine(buffer));
+        if(!hacker.m_rivals)
+        {
+            return NULL;
+        }
+        for(int j = 0; j < countElementsInLine(buffer); j++)
+        {
+            memcpy(tempBuffer, buffer + j * (ID_LEN + 1), ID_LEN);
+            sscanf(tempBuffer, "%s", &hacker.m_rivals[j]);
+        }
+
+        hackers[i] = hacker;
+    }
+
+    *hackersSize = hackersAmount;
+}
+
+/* Frees up memory associated with a student (Does not free the pointer).
+ */
+void destroyStudent(Student* student) {
+    if (student == NULL) {
+        return;
+    }
+    
+    free(student->m_name);
+    free(student->m_surname);
+    free(student->m_city);
+    free(student->m_department);
+
+    // It's good practice to NULL dangling pointers.
+    student->m_name = NULL;
+    student->m_surname = NULL;
+    student->m_city = NULL;
+    student->m_department = NULL;
+}
+
+/* Clones a string to a new buffer (that should be freed later). */
+char* cloneString(const char* string) {
+    int size = 0;
+    char* ret = NULL;
+
+    ret = (char*)malloc(sizeof(char) * (strlen(string) + 1));
+    if (ret == NULL) {
+        return NULL;
+    }
+
+    strcpy(ret, string);
+
+    return ret;
+}
+
+/* Clones a student (all memory associated with it). */
+Student cloneStudent(const Student* student, bool* success) {
+    Student out = { 0 };
+    out.m_credits = student->m_credits;
+    out.m_GPA = student->m_GPA;
+    out.m_ID = cloneString(student->m_ID);
+    out.m_name = cloneString(student->m_name);
+    out.m_surname = cloneString(student->m_surname);
+    out.m_city = cloneString(student->m_city);
+    out.m_department = cloneString(student->m_department);
+    if (!out.m_name || !out.m_surname || !out.m_city || !out.m_department || !out.m_ID) {
+        *success = false;
+        free(out.m_ID);
+        free(out.m_name);
+        free(out.m_surname);
+        free(out.m_city);
+        free(out.m_department);
+    }
+    *success = true;
+    return out;
 }
 
 //header implementations
@@ -55,10 +235,74 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
 
 EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 {
+    EnrollmentSystem out = (EnrollmentSystem)malloc(sizeof(struct EnrollmentSystem_t));
+    int courseNumber = 0;
+    int studentID = 0;
+    int i = 0;
+    bool success = true;
+    bool studentFound = false;
 
+    out->m_studentsSize = 0;
+    out->m_coursesSize = 0;
+    out->m_hackersSize = 0;
+    // Initialize dynamic memory.
+    out->m_courses = (Student**)malloc(0);
+    out->m_hackers = (Student**)malloc(0);
+    // Start students from maximum size, and realloc at the end for memory.
+    out->m_students = (Student**)malloc(sizeof(Student*) * sys->m_studentsSize);
+
+    // <Course Number> (<Student ID>)*
+    fscanf(queues, "%d", courseNumber);
+
+    // Read students in a loop.
+    while (success && fscanf(queues, "%d", &studentID) == 1) {
+        studentFound = false;
+        for (i = 0; i < sys->m_studentsSize && !studentFound && success; i++) {
+            if (sys->m_students[i].m_ID == studentID) {
+                out->m_students[out->m_studentsSize] = cloneStudent(&sys->m_students[i], &success);
+                if (success) {
+                    out->m_studentsSize++;
+                    studentFound = true;
+                }
+            }
+        }
+    }
+
+    if (!success) {
+        destroyEnrollment(out);
+        out = NULL;
+    }
+
+    return out;
 }
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
 
+}
+
+void destroyEnrollment(EnrollmentSystem enrollment) {
+    int i = 0;
+    
+    // Do nothing for null.
+    if (enrollment == NULL) {
+        return;
+    }
+
+    // Free each student indivudially because they hold memory.
+    for (i = 0; i < enrollment->m_studentsSize; i++) {
+        destroyStudent(&enrollment->m_students[i]);
+    }
+    free(enrollment->m_students);
+
+    // Course instances and hacker instances do not hold memory. 
+    free(enrollment->m_courses);
+    free(enrollment->m_hackers);
+
+    // It's good practice to NULL dangling pointers.
+    enrollment->m_students = NULL;
+    enrollment->m_courses = NULL;
+    enrollment->m_hackers = NULL;
+
+    free(enrollment);
 }

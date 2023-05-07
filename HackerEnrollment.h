@@ -7,13 +7,10 @@
 #include <string.h>
 
 
-#define BUFFER_SIZE 256
-
-
 typedef struct {
-    int m_ID;
+    char* m_ID;
     unsigned int m_credits;
-    float m_GPA;
+    unsigned int m_GPA;
     char* m_name;
     char* m_surname;
     char* m_city;
@@ -21,25 +18,28 @@ typedef struct {
 } Student;
 
 typedef struct {
-    int m_number;
-    int m_size;
+    unsigned int m_number;
+    unsigned int m_size;
 } Course;
 
 typedef struct {
-    int m_ID;
-    int* m_courseNums;
-    Student* m_friends;
-    Student* m_rivals;
+    char* m_ID;
+    unsigned int* m_courseNums;
+    char* m_friends;
+    char* m_rivals;
 } Hacker;
 
-typedef struct {
+typedef struct EnrollmentSystem_t {
     Student* m_students;
     int m_studentsSize;
     Course* m_courses;
     int m_coursesSize;
     Hacker* m_hackers;
     int m_hackersSize;
-} EnrollmentSystem;
+} EnrollmentSystem_t;
+
+typedef struct EnrollmentSystem_t * EnrollmentSystem;
+
 
 
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers);
@@ -47,6 +47,10 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers);
 EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues);
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out);
+
+/* Frees up all the memory associated with the given EnrollmentSystem instance.
+ */
+void destroyEnrollment(EnrollmentSystem enrollment);
 
 
 #endif

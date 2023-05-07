@@ -2,13 +2,16 @@
 #define HACKER_ENROLLMENT_H_
 
 
+#define ID_SIZE 9
+
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 
 typedef struct {
-    char* m_ID;
+    char m_ID[ID_SIZE + 1];
     unsigned int m_credits;
     unsigned int m_GPA;
     char* m_name;
@@ -23,7 +26,7 @@ typedef struct {
 } Course;
 
 typedef struct {
-    char* m_ID;
+    char m_ID[ID_SIZE + 1];
     unsigned int* m_courseNums;
     char* m_friends;
     char* m_rivals;

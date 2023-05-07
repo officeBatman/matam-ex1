@@ -25,7 +25,7 @@ int getLineNum(FILE* file)
 int countElementsInLine(char* line)
 {
     int elementAmount = 0;
-    while(line)
+    while(*line)
     {
         if(SPACE_CHAR == *line)
         {
@@ -37,6 +37,46 @@ int countElementsInLine(char* line)
     return elementAmount == -1 ? 0 : elementAmount - 1;
 }
 
+/* Frees up memory associated with a student (Does not free the pointer).
+ */
+void destroyStudent(Student* student) {
+    if (student == NULL) {
+        return;
+    }
+    
+    free(student->m_name);
+    free(student->m_surname);
+    free(student->m_city);
+    free(student->m_department);
+
+    // It's good practice to NULL dangling pointers.
+    student->m_name = NULL;
+    student->m_surname = NULL;
+    student->m_city = NULL;
+    student->m_department = NULL;
+}
+
+/* Frees up memory associated with a student (Does not free the pointer).
+ */
+void destroyHackers(Hacker** hackers, int hackerAmount) {
+    for(int i = 0; i  < hackerAmount; i++)
+    {
+        if (hackers[i] == NULL)
+        {
+            continue;
+        }
+        
+        free(hackers[i]->m_courseNums);
+        free(hackers[i]->m_friends);
+        free(hackers[i]->m_rivals);
+
+        // It's good practice to NULL dangling pointers.
+        hackers[i]->m_courseNums = NULL;
+        hackers[i]->m_friends = NULL;
+        hackers[i]->m_rivals = NULL;
+    }
+}
+
 Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 {
     char buffer[BUFFER_SIZE + 1] = { 0 };
@@ -45,7 +85,6 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
     Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
     Student student;
 
-    // TODO: Initialize student.m_ID
     student.m_name = (char*)malloc(sizeof(char) * BUFFER_SIZE);
     student.m_surname = (char*)malloc(sizeof(char) * BUFFER_SIZE);
     student.m_city = (char*)malloc(sizeof(char) * BUFFER_SIZE);
@@ -85,7 +124,6 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
         return NULL;
     }
 
-
     while(fgets(buffer, BUFFER_SIZE, coursesFile))
     {
         sscanf(buffer, "%d %d", &course.m_number, &course.m_size);
@@ -100,6 +138,8 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
 
 Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
 {
+    bool error = false;
+
     char buffer[BUFFER_SIZE + 1] = { 0 };
     char tempBuffer[ID_LEN] = { 0 };
 
@@ -118,35 +158,26 @@ Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
 
         fgets(buffer, BUFFER_SIZE, hackersFile);
         hacker.m_courseNums = (unsigned int*)malloc(sizeof(unsigned int) * countElementsInLine(buffer));
-        if(!hacker.m_courseNums)
-        {
-            return NULL;
-        }
-        for(int j = 0; j < countElementsInLine(buffer); j++)
+        error = hacker.m_courseNums ? error : true;
+        for(int j = 0; j < countElementsInLine(buffer) && !error; j++)
         {
             memcpy(tempBuffer, buffer + j * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
             sscanf(tempBuffer, "%d", &hacker.m_courseNums[j]);
         }
 
         fgets(buffer, BUFFER_SIZE, hackersFile);
-        hacker.m_friends = (char*)malloc(sizeof(Student) * countElementsInLine(buffer));
-        if(!hacker.m_friends)
-        {
-            return NULL;
-        }
-        for(int j = 0; j < countElementsInLine(buffer); j++)
+        hacker.m_friends = (char*)malloc(sizeof(char) * countElementsInLine(buffer));
+        error = hacker.m_friends ? error : true;
+        for(int j = 0; j < countElementsInLine(buffer) && !error; j++)
         {
             memcpy(tempBuffer, buffer + j * (ID_LEN + 1), ID_LEN);
             sscanf(tempBuffer, "%s", &hacker.m_friends[j]);
         }
 
         fgets(buffer, BUFFER_SIZE, hackersFile);
-        hacker.m_rivals = (Student*)malloc(sizeof(Student) * countElementsInLine(buffer));
-        if(!hacker.m_rivals)
-        {
-            return NULL;
-        }
-        for(int j = 0; j < countElementsInLine(buffer); j++)
+        hacker.m_rivals = (char*)malloc(sizeof(char) * countElementsInLine(buffer));
+        error = hacker.m_rivals ? error : true;
+        for(int j = 0; j < countElementsInLine(buffer) && !error; j++)
         {
             memcpy(tempBuffer, buffer + j * (ID_LEN + 1), ID_LEN);
             sscanf(tempBuffer, "%s", &hacker.m_rivals[j]);
@@ -155,27 +186,14 @@ Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
         hackers[i] = hacker;
     }
 
+    if(error)
+    {
+        destroyHackers(hackers, hackersAmount);
+        return NULL;
+    }
+
     *hackersSize = hackersAmount;
     return hackers;
-}
-
-/* Frees up memory associated with a student (Does not free the pointer).
- */
-void destroyStudent(Student* student) {
-    if (student == NULL) {
-        return;
-    }
-    
-    free(student->m_name);
-    free(student->m_surname);
-    free(student->m_city);
-    free(student->m_department);
-
-    // It's good practice to NULL dangling pointers.
-    student->m_name = NULL;
-    student->m_surname = NULL;
-    student->m_city = NULL;
-    student->m_department = NULL;
 }
 
 /* Clones a string to a new buffer (that should be freed later). */

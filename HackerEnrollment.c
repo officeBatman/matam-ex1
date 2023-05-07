@@ -27,7 +27,7 @@ int countElementsInLine(char* line)
     int elementAmount = 0;
     while(line)
     {
-        if(SPACE_CHAR == line)
+        if(SPACE_CHAR == *line)
         {
             elementAmount++;
         }
@@ -45,6 +45,7 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
     Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
     Student student;
 
+    // TODO: Initialize student.m_ID
     student.m_name = (char*)malloc(sizeof(char) * BUFFER_SIZE);
     student.m_surname = (char*)malloc(sizeof(char) * BUFFER_SIZE);
     student.m_city = (char*)malloc(sizeof(char) * BUFFER_SIZE);
@@ -61,14 +62,15 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 
     while(fgets(buffer, BUFFER_SIZE, studentsFile))
     {
-        sscanf(buffer, "%s %d %d %s %s %s %s", &student.m_ID, &student.m_credits, &student.m_GPA, &student.m_name,
-                                               &student.m_surname, &student.m_city, &student.m_department);
+        sscanf(buffer, "%s %d %d %s %s %s %s", student.m_ID, &student.m_credits, &student.m_GPA, student.m_name,
+                                               student.m_surname, student.m_city, student.m_department);
 
         students[i] = student;
         i++;
     }
 
     *studentsSize = studentsAmount;
+    return students;
 }
 
 Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
@@ -93,6 +95,7 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
     }
 
     *coursesSize = coursesAmount;
+    return courses;
 }
 
 Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
@@ -153,6 +156,7 @@ Hacker* parseHackersFile(FILE* hackersFile, int* hackersSize)
     }
 
     *hackersSize = hackersAmount;
+    return hackers;
 }
 
 /* Frees up memory associated with a student (Does not free the pointer).
@@ -214,20 +218,28 @@ Student cloneStudent(const Student* student, bool* success) {
 //header implementations
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
 {
-    EnrollmentSystem sys = { 0 };
+    EnrollmentSystem sys = (EnrollmentSystem)malloc(sizeof(struct EnrollmentSystem_t));
     int size = 0;
 
-    sys.m_students = parseStudentsFile(students, &size);
-    sys.m_studentsSize = size;
-    sys.m_courses = parseCoursesFile(courses, &size);
-    sys.m_coursesSize = size;
-    sys.m_hackers = parseHackersFile(hackers, &size);
-    sys.m_hackersSize = size;
-
-    if(!sys.m_students || !sys.m_courses || !sys.m_hackers)
+    if (!sys)
     {
-        EnrollmentSystem error = { 0 };
-        return error;
+        return NULL;
+    }
+
+    sys->m_students = parseStudentsFile(students, &size);
+    sys->m_studentsSize = size;
+    sys->m_courses = parseCoursesFile(courses, &size);
+    sys->m_coursesSize = size;
+    sys->m_hackers = parseHackersFile(hackers, &size);
+    sys->m_hackersSize = size;
+
+    if(!sys->m_students || !sys->m_courses || !sys->m_hackers)
+    {
+        free(sys->m_students);
+        free(sys->m_courses);
+        free(sys->m_hackers);
+        free(sys);
+        return NULL;
     }
 
     return sys;
@@ -237,7 +249,7 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 {
     EnrollmentSystem out = (EnrollmentSystem)malloc(sizeof(struct EnrollmentSystem_t));
     int courseNumber = 0;
-    int studentID = 0;
+    char studentID[BUFFER_SIZE] = { 0 };
     int i = 0;
     bool success = true;
     bool studentFound = false;
@@ -246,19 +258,19 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
     out->m_coursesSize = 0;
     out->m_hackersSize = 0;
     // Initialize dynamic memory.
-    out->m_courses = (Student**)malloc(0);
-    out->m_hackers = (Student**)malloc(0);
+    out->m_courses = (Course*)malloc(0);
+    out->m_hackers = (Hacker*)malloc(0);
     // Start students from maximum size, and realloc at the end for memory.
-    out->m_students = (Student**)malloc(sizeof(Student*) * sys->m_studentsSize);
+    out->m_students = (Student*)malloc(sizeof(Student*) * sys->m_studentsSize);
 
     // <Course Number> (<Student ID>)*
-    fscanf(queues, "%d", courseNumber);
+    fscanf(queues, "%d", &courseNumber);
 
     // Read students in a loop.
-    while (success && fscanf(queues, "%d", &studentID) == 1) {
+    while (success && fscanf(queues, "%s", studentID) == 1) {
         studentFound = false;
         for (i = 0; i < sys->m_studentsSize && !studentFound && success; i++) {
-            if (sys->m_students[i].m_ID == studentID) {
+            if (strcmp(sys->m_students[i].m_ID, studentID) == 0) {
                 out->m_students[out->m_studentsSize] = cloneStudent(&sys->m_students[i], &success);
                 if (success) {
                     out->m_studentsSize++;
@@ -296,6 +308,7 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
     free(enrollment->m_students);
 
     // Course instances and hacker instances do not hold memory. 
+    // TODO: Now hackers hold memory! Free it.
     free(enrollment->m_courses);
     free(enrollment->m_hackers);
 

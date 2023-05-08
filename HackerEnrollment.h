@@ -2,13 +2,15 @@
 #define HACKER_ENROLLMENT_H_
 
 
-#define ID_SIZE 9
-
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "IsraeliQueue.h"
 
+
+#define ID_SIZE 9
+#define FRIENDSHIP_THRESHOLD 20
+#define RIVALRY_THRESHOLD 0
 
 typedef struct {
     char m_ID[ID_SIZE + 1];
@@ -23,13 +25,17 @@ typedef struct {
 typedef struct {
     unsigned int m_number;
     unsigned int m_size;
+    IsraeliQueue m_queue;
 } Course;
 
 typedef struct {
-    char m_ID[ID_SIZE + 1];
-    unsigned int* m_courseNums;
-    char* m_friends;
-    char* m_rivals;
+    Student* m_student;
+    Course** m_courses;
+    int m_coursesSize;
+    Student** m_friends;
+    int m_friendsSize;
+    Student** m_rivals;
+    int m_rivalsSize;
 } Hacker;
 
 typedef struct EnrollmentSystem_t {

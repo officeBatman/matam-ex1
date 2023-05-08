@@ -404,7 +404,57 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
+    for(int i = 0; i < sys->m_coursesSize; i++)
+    {
+        sys->m_courses[i].m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i].m_queue, friendshipFunction1);
+        sys->m_courses[i].m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i].m_queue, friendshipFunction2);
+        sys->m_courses[i].m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i].m_queue, friendshipFunction3);
+    }
 
+    for(int i = 0; i < sys->m_hackersSize; i++)
+    {
+        for(int j = 0; j < sys->m_hackers[i].m_coursesSize; j++)
+        {
+            (*(sys->m_hackers[i].m_courses[j])).m_queue = IsraeliQueueEnqueue((*(sys->m_hackers[i].m_courses[j])).m_queue, &(sys->m_hackers[i]));
+        }
+    }
+
+    int coursesDeclined = 0;
+    bool success = true;
+    IsraeliQueue tempQueue = { 0 };
+    for(int i = 0; i < sys->m_hackersSize; i++)
+    {
+        if(sys->m_hackers[i].m_coursesSize == 1)
+        {
+            success = isInCourse(sys->m_hackers[i], sys->m_hackers[i].m_courses[0]) ? success : false;
+        }
+        else
+        {
+            for(int j = 0; j < sys->m_hackers[i].m_coursesSize; j++)
+            {
+                coursesDeclined = isInCourse(sys->m_hackers[i], sys->m_hackers[i].m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
+            }
+
+            success = coursesDeclined < 2;
+        }
+        
+        if(!success)
+        {
+            fprintf(out, "Cannot satisfy constraints for %s", sys->m_hackers[i].m_student->m_ID);
+        }
+        coursesDeclined = 0;
+    }
+
+    for(int i = 0; i < sys->m_coursesSize; i++)
+    {
+        fprintf(out, "%d", sys->m_courses[i].m_number);
+        tempQueue = IsraeliQueueClone(sys->m_courses[i].m_queue);
+        while(tempQueue)
+        {
+            fprintf(out, " %s", *((Student*)IsraeliQueueDequeue(tempQueue))->m_ID);
+        }
+        fprintf(out, "\n");
+    }
 }
 
 void destroyEnrollment(EnrollmentSystem enrollment) {

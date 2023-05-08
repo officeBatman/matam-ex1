@@ -6,6 +6,7 @@
 #define COURSE_NUM_LEN 6
 #define SPACE_CHAR ' '
 
+#define MAX(X, Y) (((X) < (Y)) ? (X) : (Y))
 
 //helper functions
 int getLineNum(FILE* file)
@@ -123,8 +124,10 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 
     while(fgets(buffer, BUFFER_SIZE, studentsFile))
     {
-        sscanf(buffer, "%s %d %d %s %s %s %s", student.m_ID, &student.m_credits, &student.m_GPA, student.m_name,
-                                               student.m_surname, student.m_city, student.m_department);
+        sscanf(buffer, "%s %d %d %s %s %s %s",
+        student.m_ID, &student.m_credits, &student.m_GPA, student.m_name,
+        student.m_surname, student.m_city, student.m_department);
+        student.m_hacker = NULL;
 
         students[i] = student;
         i++;
@@ -181,6 +184,7 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
         fgets(buffer, BUFFER_SIZE, hackersFile);  
         sscanf(buffer, "%s", tempBuffer);
         hacker.m_student = getStudentFromID(sys, tempBuffer);
+        hacker.m_student->m_hacker = &hacker;
 
         fgets(buffer, BUFFER_SIZE, hackersFile);
         hacker.m_courses = (Course**)malloc(sizeof(Course*) * countElementsInLine(buffer));
@@ -234,6 +238,117 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     return hackers;
 }
 
+//check if a hacker is friends with a given student
+bool checkFriend(Hacker hacker, Student* student)
+{
+    for(int i = 0; i < hacker.m_friendsSize; i++)
+    {
+        if(hacker.m_friends[i] == student)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//check if a hacker is a rival with a given student
+bool checkRival(Hacker hacker, Student* student)
+{
+    for(int i = 0; i < hacker.m_rivalsSize; i++)
+    {
+        if(hacker.m_rivals[i] == student)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+//friendship functions
+int friendshipFunction1(void* person1, void* person2)
+{
+    Student* person1Student = *(Student**)person1;
+    Student* person2Student = *(Student**)person2;
+    
+    int friendship = 0; 
+
+    if(person1Student->m_hacker)
+    {
+        if(checkFriend(*(person1Student->m_hacker), person2Student))
+        {
+            friendship = 20;//friendship amount to return
+        }
+        else if(checkRival(*(person1Student->m_hacker), person2Student))
+        {
+            friendship = -20;//rivalry amount to return
+        }//otherwise stay at 0
+    }
+    if(person2Student->m_hacker)
+    {
+        if(checkFriend(*(person2Student->m_hacker), person1Student))
+        {
+            friendship = 20;//friendship amount to return
+        }
+        else if(checkRival(*(person2Student->m_hacker), person1Student))
+        {
+            friendship = -20;//rivalry amount to return
+        }//otherwise stay at 0
+    }
+
+    return friendship;
+}
+
+int friendshipFunction2(void* person1, void* person2)
+{
+    Student* person1Student = *(Student**)person1;
+    Student* person2Student = *(Student**)person2;
+
+    int nameDiff = 0;
+
+    for(int i = 0; i < MAX(strlen(person1Student->m_name), strlen(person2Student->m_name)); i++)
+    {
+        if(i >= strlen(person1Student->m_name))
+        {
+            nameDiff += person2Student->m_name[i];
+        }
+        else if(i >= strlen(person2Student->m_name))
+        {
+            nameDiff += person1Student->m_name[i];
+        }
+        else
+        {
+            nameDiff += abs(person1Student->m_name[i] - person2Student->m_name[i]);
+        }
+    }
+
+    for(int i = 0; i < MAX(strlen(person1Student->m_surname), strlen(person2Student->m_surname)); i++)
+    {
+        if(i >= strlen(person1Student->m_surname))
+        {
+            nameDiff += person2Student->m_surname[i];
+        }
+        else if(i >= strlen(person2Student->m_surname))
+        {
+            nameDiff += person1Student->m_surname[i];
+        }
+        else
+        {
+            nameDiff += abs(person1Student->m_surname[i] - person2Student->m_surname[i]);
+        }
+    }
+
+    return nameDiff;
+}
+
+int friendshipFunction3(void* person1, void* person2)
+{
+    Student* person1Student = *(Student**)person1;
+    Student* person2Student = *(Student**)person2;
+
+    return abs(person1Student->m_ID - person2Student->m_ID);
+}
 
 //header implementations
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)

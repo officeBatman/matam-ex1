@@ -20,6 +20,7 @@ typedef struct {
     char* m_surname;
     char* m_city;
     char* m_department;
+    Hacker* m_hacker;
 } Student;
 
 typedef struct {

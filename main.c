@@ -65,7 +65,7 @@ int main(int argc, const char *argv[]) {
         return 0;
     }
 
-    if (argc == 6) {
+    if (argc == NUM_REQUIRED_ARGS + 2) {
         if (strcmp(primaryArgs[1], "-i") != 0) {
             printUsageError(commandName);
             return 0;
@@ -83,6 +83,8 @@ int main(int argc, const char *argv[]) {
     setCaseSensitive(system, caseSensitive);
     readEnrollment(system, files.queues);
     hackEnrollment(system, files.target);
+
+    closeFiles(files);
 
     return 0;
 }

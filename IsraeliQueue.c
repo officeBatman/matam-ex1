@@ -105,18 +105,18 @@ Node NodeCreate(void* data, Node next) {
 // the first rival that is blocking. If no friends were found, returns the last
 // node in the list.
 // According to those cases, sets the outStatus to the appropriate value.
-Node findFriendNotBlocked(IsraeliQueue q, void* data, Node stop, FriendStatus* outStatus) {
+Node* findFriendNotBlocked(IsraeliQueue q, void* data, Node stop, FriendStatus* outStatus) {
     // Iterativly, find the first friend, and if it is blocked, start over.
-    Node friend = NULL;
-    Node rival = NULL;
-    Node last = NULL;
-    for (Node curr = q->m_list; curr != NULL && curr != stop; curr = curr->m_next) {
+    Node* friend = NULL;
+    Node* rival = NULL;
+    Node* last = &q->m_list;
+    for (Node* curr = &q->m_list; *curr != NULL && *curr != stop; curr = &(*curr)->m_next) {
         // According to the friendship status, update the friend and rival.
-        FriendStatus status = getFriendshipStatus(q, data, curr->m_data);
+        FriendStatus status = getFriendshipStatus(q, data, (*curr)->m_data);
         // TODO: Allow a friend that is full but contains the data to be returned.
-        if (status == FRIEND && curr->m_friendsCalledOver < FRIEND_QUOTA && !friend) {
+        if (status == FRIEND && (*curr)->m_friendsCalledOver < FRIEND_QUOTA && !friend) {
             friend = curr;
-        } else if (status == RIVAL && curr->m_rivalsBlocked < RIVAL_QUOTA && friend) {
+        } else if (status == RIVAL && (*curr)->m_rivalsBlocked < RIVAL_QUOTA && friend) {
             friend = NULL;
             rival = curr;
         }
@@ -130,22 +130,30 @@ Node findFriendNotBlocked(IsraeliQueue q, void* data, Node stop, FriendStatus* o
 
 // Insert a node after the given node. Updates the friends and rivals
 // lists of insertAfter according to the given friendship status.
-void NodeInsertAfter(Node insertAfter, Node* toInsertPtr, FriendStatus status) {
+void NodeInsertAfter(Node* insertAfter, Node* toInsertPtr, FriendStatus status) {
     assert(insertAfter);
     assert(toInsertPtr);
     assert((*toInsertPtr)->m_next);
 
+    if (*insertAfter == NULL) {
+        *insertAfter = *toInsertPtr;
+    }
+
+    /* TODO:
     // Regular linked list insertion.
     Node oldNext = (*toInsertPtr)->m_next;
-    (*toInsertPtr)->m_next = insertAfter->m_next;
-    insertAfter->m_next = *toInsertPtr;
+    (*toInsertPtr)->m_next = (*insertAfter)->m_next;
+    (*insertAfter)->m_next = *toInsertPtr;
     *toInsertPtr = oldNext;
+    */
+    (*toInsertPtr)->m_next = (*insertAfter)->m_next;
+    (*insertAfter)->m_next = *toInsertPtr;
     
     // Update the friends and rivals counters.
     if (status == FRIEND) {
-        insertAfter->m_friendsCalledOver++;
+        (*insertAfter)->m_friendsCalledOver++;
     } else if (status == RIVAL) {
-        insertAfter->m_rivalsBlocked++;
+        (*insertAfter)->m_rivalsBlocked++;
     }
 }
 
@@ -189,7 +197,7 @@ void IsraeliQueueDestroy(IsraeliQueue q) {
 
 IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue q, void* data) {
     FriendStatus status = 0;
-    Node insertAfter = findFriendNotBlocked(q, data, NULL, &status);
+    Node* insertAfter = findFriendNotBlocked(q, data, NULL, &status);
 
     Node toInsert = NodeCreate(data, NULL);
     if (!toInsert) {
@@ -292,7 +300,7 @@ IsraeliQueueError IsraeliQueueImprovePositionsRecursive(IsraeliQueue q, Node* no
     }
 
     FriendStatus status = 0;
-    Node insertAfter = findFriendNotBlocked(q, &(*nodePtr)->m_data, *nodePtr, &status);
+    Node* insertAfter = findFriendNotBlocked(q, &(*nodePtr)->m_data, *nodePtr, &status);
 
     NodeInsertAfter(insertAfter, nodePtr, status);
 

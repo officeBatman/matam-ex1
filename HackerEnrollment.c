@@ -19,13 +19,16 @@ int getLineNum(FILE* file)
         lineNum++;
     }
 
+    // Push the file pointer back to the start of the file.
+    fseek(file, 0, SEEK_SET);
+
     return lineNum;
 }
 
 //counts elements using space amount
 int countElementsInLine(char* line)
 {
-    int elementAmount = 0;
+    int elementAmount = 1;
     while(*line)
     {
         if(SPACE_CHAR == *line)
@@ -35,10 +38,10 @@ int countElementsInLine(char* line)
         line++;
     }
 
-    return elementAmount == -1 ? 0 : elementAmount - 1;
+    return elementAmount;
 }
 
-//Frees up memory associated with a student (Does not free the pointer)
+//Frees up memory associated with a student.
 void destroyStudent(Student student) {
     if (student == NULL) {
         return;
@@ -54,21 +57,42 @@ void destroyStudent(Student student) {
     student->m_surname = NULL;
     student->m_city = NULL;
     student->m_department = NULL;
+
+    free(student);
 }
 
-//Frees up memory associated with a student (Does not free the pointer).
+void destroyHacker(Hacker hacker) {
+    if (hacker == NULL) {
+        return;
+    }
+
+    // Don't free the instances in the array - the EnrollmentSystem is responsible for that.
+    free(hacker->m_courses);
+    free(hacker->m_friends);
+    free(hacker->m_rivals);
+
+    hacker->m_courses = NULL;
+    hacker->m_friends = NULL;
+    hacker->m_rivals = NULL;
+
+    free(hacker);
+}
+
 void destroyHackers(Hacker* hackers, int hackerAmount) {
     for(int i = 0; i  < hackerAmount; i++)
     {
-        free(hackers[i]->m_courses);
-        free(hackers[i]->m_friends);
-        free(hackers[i]->m_rivals);
-
-        // It's good practice to NULL dangling pointers.
-        hackers[i]->m_courses = NULL;
-        hackers[i]->m_friends = NULL;
-        hackers[i]->m_rivals = NULL;
+        destroyHacker(hackers[i]);
     }
+}
+
+void destroyCourse(Course course) {
+    if (course == NULL) {
+        return;
+    }
+
+    IsraeliQueueDestroy(course->m_queue);
+
+    free(course);
 }
 
 //returns a course pointer based on the course number
@@ -90,7 +114,7 @@ Student getStudentFromID(EnrollmentSystem sys, char ID[ID_SIZE + 1])
 {
     for(int i = 0; i < sys->m_studentsSize; i++)
     {
-        if((sys->m_students[i]->m_ID, ID) == 0)
+        if(strcmp(sys->m_students[i]->m_ID, ID) == 0)
         {
             return sys->m_students[i];
         }
@@ -465,15 +489,19 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
         return;
     }
 
-    // Free each student indivudially because they hold memory.
     for (i = 0; i < enrollment->m_studentsSize; i++) {
         destroyStudent(enrollment->m_students[i]);
     }
     free(enrollment->m_students);
 
-    // Course instances and hacker instances do not hold memory. 
-    // TODO: Now hackers hold memory! Free it.
+    for (i = 0; i < enrollment->m_coursesSize; i++) {
+        destroyCourse(enrollment->m_courses[i]);
+    }
     free(enrollment->m_courses);
+
+    for (i = 0; i < enrollment->m_hackersSize; i++) {
+        destroyHacker(enrollment->m_hackers[i]);
+    }
     free(enrollment->m_hackers);
 
     // It's good practice to NULL dangling pointers.

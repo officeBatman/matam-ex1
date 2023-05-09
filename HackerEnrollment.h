@@ -66,7 +66,7 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out);
  */
 void destroyEnrollment(EnrollmentSystem enrollment);
 
-void setCaseSensitive(bool sensitive);
+void setCaseSensitive(EnrollmentSystem system, bool caseSensitive);
 
 
 #endif

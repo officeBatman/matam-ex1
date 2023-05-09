@@ -140,7 +140,17 @@ char* cloneString(const char* string) {
     return out;
 }
 
-Student createStudent(char ID[ID_SIZE + 1], unsigned int credits, unsigned int GPA, char* name, char* surname, char* city, char* department, Hacker hacker) {
+char lowerCaseChar(char character) {
+    return 'A' <= character && character <= 'Z' ? character - 'A' : character;
+}
+
+char lowerCaseConditional(char character, bool lowerCase) {
+    return lowerCase ? lowerCaseChar(character) : character;
+}
+
+Student createStudent(char ID[ID_SIZE + 1], unsigned int credits, unsigned int GPA, char* name,
+                      char* surname, char* city, char* department, Hacker hacker)
+ {
     Student out = (Student)malloc(sizeof(struct Student_t));
     if(out == NULL)
     {
@@ -435,7 +445,7 @@ int friendshipFunction1(void* person1, void* person2)
     return friendship;
 }
 
-int stringDiff(const char* str1, const char* str2) {
+int stringDiff(const char* str1, const char* str2, bool caseSensitive) {
     int len1 = strlen(str1);
     int len2 = strlen(str2);
     int len = MAX(len1, len2);
@@ -445,33 +455,44 @@ int stringDiff(const char* str1, const char* str2) {
     {
         if(i >= len1)
         {
-            sum += str2[i];
+            sum += lowerCaseConditional(str2[i], !caseSensitive);
         }
         else if(i >= len2)
         {
-            sum += str1[i];
+            sum += lowerCaseConditional(str1[i], !caseSensitive);
         }
         else
         {
-            sum += abs(str1[i] - str2[i]);
+            sum += abs(
+                lowerCaseConditional(str1[i], !caseSensitive)
+                - lowerCaseConditional(str2[i], !caseSensitive)
+            );
         }
     }
 
     return sum;
 }
 
-int friendshipFunction2(void* person1, void* person2)
+int friendshipFunction2(void* person1, void* person2, bool caseSensitive)
 {
     Student person1Student = *(Student*)person1;
     Student person2Student = *(Student*)person2;
 
     int nameDiff = 0;
 
-    nameDiff += stringDiff(person1Student->m_name, person2Student->m_name);
-    nameDiff += stringDiff(person1Student->m_surname, person2Student->m_surname);
+    nameDiff += stringDiff(person1Student->m_name, person2Student->m_name, caseSensitive);
+    nameDiff += stringDiff(person1Student->m_surname, person2Student->m_surname, caseSensitive);
 
     return nameDiff;
 }
+
+int friendshipFunction2Sensitive(void* person1, void* person2) {
+    return friendshipFunction2(person1, person2, true);
+}
+int friendshipFunction2Insensitive(void* person1, void* person2) {
+    return friendshipFunction2(person1, person2, false);
+}
+
 
 int friendshipFunction3(void* person1, void* person2)
 {
@@ -479,6 +500,24 @@ int friendshipFunction3(void* person1, void* person2)
     Student person2Student = *(Student*)person2;
 
     return abs(atoi(person1Student->m_ID) - atoi(person2Student->m_ID));
+}
+
+bool isInCourse(Student student, Course course)
+{
+    IsraeliQueue queue = IsraeliQueueClone(course->m_queue);
+    int studentsNum = course->m_size;
+    while(queue && studentsNum > 0)
+    {
+        if(strcmp((*((Student*)IsraeliQueueDequeue(queue)))->m_ID, student->m_ID) == 0)
+        {
+            IsraeliQueueDestroy(queue);
+            return true;
+        }
+        studentsNum--;
+    }
+
+    IsraeliQueueDestroy(queue);
+    return false;
 }
 
 //header implementations
@@ -498,7 +537,6 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
     sys->m_coursesSize = size;
     sys->m_hackers = parseHackersFile(sys, hackers, &size);
     sys->m_hackersSize = size;
-    sys->caseSensitive = false;
 
     if(!sys->m_students || !sys->m_courses || !sys->m_hackers)
     {
@@ -539,7 +577,10 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
     for(int i = 0; i < sys->m_coursesSize; i++)
     {
         sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction1);
-        sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction2);
+        sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(
+            sys->m_courses[i]->m_queue,
+            sys->caseSensitive ? friendshipFunction2Sensitive : friendshipFunction2Insensitive
+        );
         sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction3);
     }
 
@@ -558,13 +599,13 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
     {
         if(sys->m_hackers[i]->m_coursesSize == 1)
         {
-            success = isInCourse(sys->m_hackers[i], sys->m_hackers[i]->m_courses[0]) ? success : false;
+            success = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[0]) ? success : false;
         }
         else
         {
             for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++)
             {
-                coursesDeclined = isInCourse(sys->m_hackers[i], sys->m_hackers[i]->m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
+                coursesDeclined = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
             }
 
             success = coursesDeclined < 2;
@@ -621,5 +662,5 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
 }
 
 void setCaseSensitive(EnrollmentSystem sys, bool sensitive) {
-    
+    sys->caseSensitive = sensitive;
 }

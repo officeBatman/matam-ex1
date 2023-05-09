@@ -130,7 +130,7 @@ char* cloneString(const char* string) {
         return NULL;
     }
 
-    unsigned int len = strlen(string);
+    int len = strlen(string);
     char* out = (char*)malloc(sizeof(char) * (len + 1));
     if (out == NULL) {
         return NULL;
@@ -148,7 +148,7 @@ char lowerCaseConditional(char character, bool lowerCase) {
     return lowerCase ? lowerCaseChar(character) : character;
 }
 
-Student createStudent(char ID[ID_SIZE + 1], unsigned int credits, unsigned int GPA, char* name,
+Student createStudent(char ID[ID_SIZE + 1], int credits, int GPA, char* name,
                       char* surname, char* city, char* department, Hacker hacker)
  {
     Student out = (Student)malloc(sizeof(struct Student_t));
@@ -181,8 +181,8 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
     bool error = false;
     char mainBuffer[BUFFER_SIZE + 1] = { 0 };
     char IDBuffer[ID_SIZE + 1] = { 0 };
-    unsigned int credits = 0;
-    unsigned int GPA = 0;
+    int credits = 0;
+    int GPA = 0;
     char nameBuffer[BUFFER_SIZE + 1] = { 0 };
     char surnameBuffer[BUFFER_SIZE + 1] = { 0 };
     char cityBuffer[BUFFER_SIZE + 1] = { 0 };
@@ -224,7 +224,7 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
     return students;
 }
 
-Course createCourse(unsigned int number, unsigned int size) {
+Course createCourse(int number, int size) {
     FriendshipFunction emptyFriendships[1] = { NULL };
 
     Course out = (Course)malloc(sizeof(struct Course_t));
@@ -250,8 +250,8 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
     char buffer[BUFFER_SIZE + 1] = { 0 };
     int i = 0;
     bool error = false;
-    unsigned int number = 0;
-    unsigned int size = 0;
+    int number = 0;
+    int size = 0;
 
     int coursesAmount = getLineNum(coursesFile);
     Course* courses = (Course*)malloc(sizeof(Course) * coursesAmount);
@@ -356,7 +356,6 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     char coursesBuffer[BUFFER_SIZE + 1] = { 0 };
     char friendsBuffer[BUFFER_SIZE + 1] = { 0 };
     char rivalsBuffer[BUFFER_SIZE + 1] = { 0 };
-    char tempBuffer[ID_SIZE + 1] = { 0 };
 
     int hackersAmount = getLineNum(hackersFile) / 4;
     Hacker* hackers = (Hacker*)malloc(sizeof(Hacker) * hackersAmount);
@@ -553,9 +552,8 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
 EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 {
     char buffer[BUFFER_SIZE + 1] = { 0 };
-    char tempBuffer[ID_SIZE] = { 0 };
+    char tempBuffer[ID_SIZE + 1] = { 0 };
     int courseNum = 0;
-    int i = 0;
     Course course = { 0 };
 
     while(fgets(buffer, BUFFER_SIZE, queues))
@@ -565,7 +563,9 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
         for(int j = 1; j < countElementsInLine(buffer); j++)
         {
             memcpy(tempBuffer, buffer + j * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
-            course->m_queue = IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, tempBuffer));
+            if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, tempBuffer)) != ISRAELIQUEUE_SUCCESS) {
+                return NULL;
+            }
         }
     }
 
@@ -574,21 +574,29 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
+    IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
+
     for(int i = 0; i < sys->m_coursesSize; i++)
     {
-        sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction1);
-        sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(
+        error = !error ? IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction1) : error;
+        error = !error ? IsraeliQueueAddFriendshipMeasure(
             sys->m_courses[i]->m_queue,
             sys->caseSensitive ? friendshipFunction2Sensitive : friendshipFunction2Insensitive
-        );
-        sys->m_courses[i]->m_queue = IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction3);
+        ) : error;
+        error = !error ? IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction3) : error;
+
+        if (error) {
+            return;
+        }
     }
 
     for(int i = 0; i < sys->m_hackersSize; i++)
     {
         for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++)
         {
-            (sys->m_hackers[i]->m_courses[j])->m_queue = IsraeliQueueEnqueue((sys->m_hackers[i]->m_courses[j])->m_queue, sys->m_hackers[i]);
+            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue((sys->m_hackers[i]->m_courses[j])->m_queue, sys->m_hackers[i])) {
+                return;
+            }
         }
     }
 

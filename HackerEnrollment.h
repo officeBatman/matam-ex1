@@ -20,8 +20,8 @@ typedef struct EnrollmentSystem_t * EnrollmentSystem;
 
 typedef struct Student_t {
     char m_ID[ID_SIZE + 1];
-    unsigned int m_credits;
-    unsigned int m_GPA;
+    int m_credits;
+    int m_GPA;
     char* m_name;
     char* m_surname;
     char* m_city;
@@ -30,8 +30,8 @@ typedef struct Student_t {
 } Student_t;
 
 typedef struct Course_t {
-    unsigned int m_number;
-    unsigned int m_size;
+    int m_number;
+    int m_size;
     IsraeliQueue m_queue;
 } Course_t;
 

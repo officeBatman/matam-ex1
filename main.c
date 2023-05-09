@@ -17,7 +17,7 @@ typedef struct Files {
 } Files;
 
 void printUsageError(const char* commandName) {
-    printf("Usage: %s <flags> <students> <courses> <hackers> <target>\n", commandName);
+    printf("Usage: %s <flags> <students> <courses> <hackers> <queues> <target>\n", commandName);
 }
 
 // Closes the file, if it is not NULL. Calling fclose(NULL) is undefined behavior.
@@ -60,7 +60,7 @@ int main(int argc, const char *argv[]) {
     const char* commandName = argv[0];
     const char** primaryArgs = &argv[1];
 
-    if (argc != NUM_REQUIRED_ARGS || argc != NUM_REQUIRED_ARGS + 1) {
+    if (argc != NUM_REQUIRED_ARGS + 1 && argc != NUM_REQUIRED_ARGS + 2) {
         printUsageError(commandName);
         return 0;
     }

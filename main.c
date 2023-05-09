@@ -79,7 +79,8 @@ int main(int argc, const char *argv[]) {
         primaryArgs[0], primaryArgs[1], primaryArgs[2], primaryArgs[3], primaryArgs[4]
     );
     
-    EnrollmentSystem system = createEnrollment(files.students, files.courses, files.hackers, caseSensitive);
+    EnrollmentSystem system = createEnrollment(files.students, files.courses, files.hackers);
+    setCaseSensitive(system, caseSensitive);
     readEnrollment(system, files.queues);
     hackEnrollment(system, files.target);
 

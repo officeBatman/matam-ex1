@@ -137,6 +137,7 @@ void NodeInsertAfter(Node* insertAfter, Node* toInsertPtr, FriendStatus status) 
 
     if (*insertAfter == NULL) {
         *insertAfter = *toInsertPtr;
+        return;
     }
 
     /* TODO:

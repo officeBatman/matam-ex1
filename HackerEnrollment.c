@@ -330,6 +330,8 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
         return NULL;
     }
 
+    // Set a zero a the end of the next strings that will be in the buffer.
+    tempBuffer[COURSE_NUM_LEN] = '\0';
     for(i = 0; i < courses; i++) {
         memcpy(tempBuffer, coursesBuffer + i * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
         hacker->m_courses[i] = getCourseFromNum(sys, atoi(tempBuffer));
@@ -413,8 +415,8 @@ bool checkRival(Hacker hacker, Student student)
 //friendship functions
 int friendshipFunction1(void* person1, void* person2)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
     
     int friendship = 0; 
 
@@ -474,8 +476,8 @@ int stringDiff(const char* str1, const char* str2, bool caseSensitive) {
 
 int friendshipFunction2(void* person1, void* person2, bool caseSensitive)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
 
     int nameDiff = 0;
 
@@ -495,8 +497,8 @@ int friendshipFunction2Insensitive(void* person1, void* person2) {
 
 int friendshipFunction3(void* person1, void* person2)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
 
     return abs(atoi(person1Student->m_ID) - atoi(person2Student->m_ID));
 }
@@ -560,9 +562,9 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
     {
         sscanf(buffer, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);
-        for(int j = 1; j < countElementsInLine(buffer); j++)
+        for(int j = 0; j < countElementsInLine(buffer) - 1; j++)
         {
-            memcpy(tempBuffer, buffer + j * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
+            memcpy(tempBuffer, buffer + COURSE_NUM_LEN + 1 + j * (ID_SIZE + 1), ID_SIZE);
             if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, tempBuffer)) != ISRAELIQUEUE_SUCCESS) {
                 return NULL;
             }

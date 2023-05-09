@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 #include "IsraeliQueue.h"
 
 
@@ -51,6 +52,7 @@ typedef struct EnrollmentSystem_t {
     int m_coursesSize;
     Hacker* m_hackers;
     int m_hackersSize;
+    bool caseSensitive;
 } EnrollmentSystem_t;
 
 
@@ -63,6 +65,8 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out);
 /* Frees up all the memory associated with the given EnrollmentSystem instance.
  */
 void destroyEnrollment(EnrollmentSystem enrollment);
+
+void setCaseSensitive(bool sensitive);
 
 
 #endif

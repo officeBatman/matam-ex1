@@ -498,6 +498,7 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
     sys->m_coursesSize = size;
     sys->m_hackers = parseHackersFile(sys, hackers, &size);
     sys->m_hackersSize = size;
+    sys->caseSensitive = false;
 
     if(!sys->m_students || !sys->m_courses || !sys->m_hackers)
     {
@@ -617,4 +618,8 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
     enrollment->m_hackers = NULL;
 
     free(enrollment);
+}
+
+void setCaseSensitive(EnrollmentSystem sys, bool sensitive) {
+    
 }

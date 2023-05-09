@@ -12,6 +12,11 @@
 #define FRIENDSHIP_THRESHOLD 20
 #define RIVALRY_THRESHOLD 0
 
+typedef struct Student_t * Student;
+typedef struct Course_t * Course;
+typedef struct Hacker_t * Hacker;
+typedef struct EnrollmentSystem_t * EnrollmentSystem;
+
 typedef struct Student_t {
     char m_ID[ID_SIZE + 1];
     unsigned int m_credits;
@@ -47,11 +52,6 @@ typedef struct EnrollmentSystem_t {
     Hacker* m_hackers;
     int m_hackersSize;
 } EnrollmentSystem_t;
-
-typedef struct Student_t * Student;
-typedef struct Course_t * Course;
-typedef struct Hacker_t * Hacker;
-typedef struct EnrollmentSystem_t * EnrollmentSystem;
 
 
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers);

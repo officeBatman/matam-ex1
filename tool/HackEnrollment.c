@@ -273,13 +273,11 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
         free(cityBuffer);
         free(departmentBuffer);
     }
-
     if (error) {
         destroyStudentsArray(students, studentsAmount);
         free(students);
         return NULL;
     }
-
     *studentsSize = studentsAmount;
     return students;
 }

@@ -205,8 +205,6 @@ void NodeDestroy(Node n) {
 }
 
 void IsraeliQueueDestroy(IsraeliQueue q) {
-    Node curr = NULL;
-
     // Exit early if the queue is already NULL.
     if (!q) {
         return;

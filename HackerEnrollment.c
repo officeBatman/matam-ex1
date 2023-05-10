@@ -509,7 +509,7 @@ bool isInCourse(Student student, Course course)
     int studentsNum = course->m_size;
     while(queue && studentsNum > 0)
     {
-        if(strcmp((*((Student*)IsraeliQueueDequeue(queue)))->m_ID, student->m_ID) == 0)
+        if(strcmp(((Student)IsraeliQueueDequeue(queue))->m_ID, student->m_ID) == 0)
         {
             IsraeliQueueDestroy(queue);
             return true;
@@ -576,6 +576,8 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
+    Hacker hacker = NULL;
+    Course course = NULL;
     IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
 
     for(int i = 0; i < sys->m_coursesSize; i++)
@@ -592,11 +594,14 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
     }
 
+    // Insert the hackers into the queue.
     for(int i = 0; i < sys->m_hackersSize; i++)
     {
-        for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++)
+        hacker = sys->m_hackers[i];
+        for(int j = 0; j < hacker->m_coursesSize; j++)
         {
-            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue((sys->m_hackers[i]->m_courses[j])->m_queue, sys->m_hackers[i])) {
+            course = hacker->m_courses[j];
+            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue(course->m_queue, hacker->m_student)) {
                 return;
             }
         }

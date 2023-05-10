@@ -55,6 +55,12 @@ char* readLine(FILE* input) {
         lineLength++;
     }
 
+    // We don't care about empty last lines.
+    if (character == EOF && lineLength == 0) {
+        free(line);
+        return NULL;
+    }
+
     // Trim the string.
     lineNew = realloc(line, (lineLength + 1) * sizeof(char));
     if (lineNew == NULL) {

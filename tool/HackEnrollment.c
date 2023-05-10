@@ -6,7 +6,7 @@
 #define COURSE_NUM_LEN 6
 #define SPACE_CHAR ' '
 
-#define MAX(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
 //counts elements using space amount
 int countElementsInLine(char* line)

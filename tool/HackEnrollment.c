@@ -234,20 +234,25 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 
     while((line = readLine(studentsFile))) {
         int lineLength = strlen(line);
-        char* nameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
-        char* surnameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
-        char* cityBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
-        char* departmentBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
+        char* nameBuffer = (char*)calloc(lineLength + 1, sizeof(char));
+        char* surnameBuffer = (char*)calloc(lineLength + 1, sizeof(char));
+        char* cityBuffer = (char*)calloc(lineLength + 1, sizeof(char));
+        char* departmentBuffer = (char*)calloc(lineLength + 1, sizeof(char));
+        if (!nameBuffer || !surnameBuffer || !cityBuffer || !departmentBuffer) {
+            error = true;
+        }
 
-        sscanf(
-            line, "%s %d %d %s %s %s %s",
-            IDBuffer, &credits, &GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer
-        );
+        if (!error) {
+            sscanf(
+                line, "%s %d %d %s %s %s %s",
+                IDBuffer, &credits, &GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer
+            );
 
-        students[i] = createStudent(
-            IDBuffer, credits, GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer, NULL
-        );
-        error = !students[i] ? true : error;
+            students[i] = createStudent(
+                IDBuffer, credits, GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer, NULL
+            );
+            error = !students[i] ? true : error;
+        }
 
         i++;
         free(line);

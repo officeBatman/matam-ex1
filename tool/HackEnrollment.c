@@ -669,6 +669,8 @@ void checkSuccess(EnrollmentSystem sys, FILE* out) {
             student = IsraeliQueueDequeue(tempQueue);
         }
         fprintf(out, "\n");
+
+        IsraeliQueueDestroy(tempQueue);
     }
 }
 

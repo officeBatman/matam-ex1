@@ -1,0 +1,5 @@
+4 hackers want same course
+1st student in queue is friends with all hackers,
+last student in queue is rival with all hackers
+rival will block 3 hackers but the 4th one will be able to pass him
+but course is to small so the one before the last hacker will not have room

@@ -1,0 +1,4 @@
+friends count test:
+row contains two student, the first is friend with all the hackers and the second is neutral to all of them
+hackers are neutral to eachother
+5 hackers will be able to cut in line and the rest will be sent to the back

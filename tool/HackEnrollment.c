@@ -366,7 +366,7 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     }
 
     for(int i = 0; i < hackersAmount; i++) {
-        fgets(IDBuffer, BUFFER_SIZE, hackersFile);  
+        fgets(IDBuffer, ID_SIZE, hackersFile);  
         fgets(coursesBuffer, BUFFER_SIZE, hackersFile);  
         fgets(friendsBuffer, BUFFER_SIZE, hackersFile);  
         fgets(rivalsBuffer, BUFFER_SIZE, hackersFile);  
@@ -576,13 +576,9 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
-    Student student = NULL;
-    Hacker hacker = NULL;
-    Course course = NULL;
     IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
 
-    for(int i = 0; i < sys->m_coursesSize; i++)
-    {
+    for(int i = 0; i < sys->m_coursesSize; i++) {
         error = !error ? IsraeliQueueAddFriendshipMeasure(sys->m_courses[i]->m_queue, friendshipFunction1) : error;
         error = !error ? IsraeliQueueAddFriendshipMeasure(
             sys->m_courses[i]->m_queue,
@@ -595,6 +591,37 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
     }
 
+    if (!enqueueHackers()) {
+        return;
+    }
+
+    int coursesDeclined = 0;
+    bool success = true;
+    for(int i = 0; i < sys->m_hackersSize; i++) {
+        if(sys->m_hackers[i]->m_coursesSize == 1) {
+            success = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[0]) ? success : false;
+        }
+        else {
+            for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++) {
+                coursesDeclined = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
+            }
+
+            success = coursesDeclined < 2;
+        }
+        
+        if(!success) {
+            fprintf(out, "Cannot satisfy constraints for %s", sys->m_hackers[i]->m_student->m_ID);
+        }
+        coursesDeclined = 0;
+    }
+
+    checkSuccess(sys, out);
+}
+
+bool enqueueHackers(EnrollmentSystem sys) {
+    Hacker hacker = NULL;
+    Course course = NULL;
+
     // Insert the hackers into the queue.
     for(int i = 0; i < sys->m_hackersSize; i++)
     {
@@ -603,36 +630,17 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         {
             course = hacker->m_courses[j];
             if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue(course->m_queue, hacker->m_student)) {
-                return;
+                return false;
             }
         }
     }
 
-    int coursesDeclined = 0;
-    bool success = true;
+    return true;
+}
+
+void checkSuccess(EnrollmentSystem sys, FILE* out) {
+    Student student = NULL;
     IsraeliQueue tempQueue = { 0 };
-    for(int i = 0; i < sys->m_hackersSize; i++)
-    {
-        if(sys->m_hackers[i]->m_coursesSize == 1)
-        {
-            success = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[0]) ? success : false;
-        }
-        else
-        {
-            for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++)
-            {
-                coursesDeclined = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
-            }
-
-            success = coursesDeclined < 2;
-        }
-        
-        if(!success)
-        {
-            fprintf(out, "Cannot satisfy constraints for %s", sys->m_hackers[i]->m_student->m_ID);
-        }
-        coursesDeclined = 0;
-    }
 
     for(int i = 0; i < sys->m_coursesSize; i++)
     {

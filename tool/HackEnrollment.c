@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#define COURSE_NUM_LEN 6
 #define SPACE_CHAR ' '
 
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
@@ -366,14 +365,15 @@ Hacker createHacker(Student student, int courses, int friends, int rivals) {
 
 Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, char* friendsBuffer, char* rivalsBuffer) {
     Hacker hacker = NULL;
-    char tempBuffer[ID_SIZE + 1] = { 0 };
+    char* tempCourseBuffer = (char*)calloc(strlen(coursesBuffer) + 1, sizeof(char));
+    char tempIDBuffer[ID_SIZE + 1] = { 0 };
     Student student = NULL;
     int courses = 0;
     int friends = 0;
     int rivals = 0;
     int i = 0;
 
-    sscanf(IDBuffer, "%s", tempBuffer);
+    sscanf(IDBuffer, "%s", tempIDBuffer);
     student = getStudentFromID(sys, tempBuffer);
 
     courses = countElementsInLine(coursesBuffer);
@@ -382,26 +382,30 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
 
     hacker = createHacker(student, courses, friends, rivals);
     if (!hacker) {
+        free(tempCourseBuffer);
         return NULL;
     }
 
-    // Set a zero a the end of the next strings that will be in the buffer.
-    tempBuffer[COURSE_NUM_LEN] = '\0';
+    char* current = coursesBuffer;
     for(i = 0; i < courses; i++) {
-        memcpy(tempBuffer, coursesBuffer + i * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
-        hacker->m_courses[i] = getCourseFromNum(sys, atoi(tempBuffer));
+        char* space = strchr(current, ' ');
+        *space = '\0';
+        strcpy(tempCourseBuffer, current);
+        hacker->m_courses[i] = getCourseFromNum(sys, atoi(tempCourseBuffer));
+        current = space + 1;
     }
 
     for(i = 0; i < friends; i++) {
-        memcpy(tempBuffer, friendsBuffer + i * (ID_SIZE + 1), ID_SIZE);
-        hacker->m_friends[i] = getStudentFromID(sys, tempBuffer);
+        memcpy(tempIDBuffer, friendsBuffer + i * (ID_SIZE + 1), ID_SIZE);
+        hacker->m_friends[i] = getStudentFromID(sys, tempIDBuffer);
     }
 
     for(i = 0; i < rivals; i++) {
-        memcpy(tempBuffer, rivalsBuffer + i * (ID_SIZE + 1), ID_SIZE);
-        hacker->m_rivals[i] = getStudentFromID(sys, tempBuffer);
+        memcpy(tempIDBuffer, rivalsBuffer + i * (ID_SIZE + 1), ID_SIZE);
+        hacker->m_rivals[i] = getStudentFromID(sys, tempIDBuffer);
     }
 
+    free(tempCourseBuffer);
     return hacker;
 }
 
@@ -624,9 +628,11 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
         sscanf(line, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);
         elements = countElementsInLine(line);
+        // Move the line to after the course number.
+        line = strchr(line, ' ') + 1;
         for(int j = 0; j < elements - 1; j++)
         {
-            memcpy(IDBuffer, line + COURSE_NUM_LEN + 1 + j * (ID_SIZE + 1), ID_SIZE);
+            memcpy(IDBuffer, line + j * (ID_SIZE + 1), ID_SIZE);
             if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, IDBuffer)) != ISRAELIQUEUE_SUCCESS) {
                 return NULL;
             }

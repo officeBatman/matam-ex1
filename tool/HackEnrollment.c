@@ -20,7 +20,7 @@ int countElementsInLine(char* line)
         if(SPACE_CHAR == *line)
         {
             // If this is the last character, don't count it.
-            if (*(line + 1) != '\0') {
+            if (*(line + 1) == '\0') {
                 return elementAmount;
             }
 

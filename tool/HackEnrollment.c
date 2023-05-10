@@ -629,7 +629,7 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
     }
 
-    if (!enqueueHackers()) {
+    if (!enqueueHackers(sys)) {
         return;
     }
 

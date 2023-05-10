@@ -179,6 +179,7 @@ IsraeliQueue IsraeliQueueCreate(FriendshipFunction* friendships, ComparisonFunct
     ret->m_compare = compare;
     ret->m_friendshipThreshold = friendshipThreshold;
     ret->m_rivalryThreshold = rivalryThreshold;
+    printf("Creating queue\n");
     return ret;
 }
 
@@ -192,6 +193,7 @@ IsraeliQueue IsraeliQueueClone(IsraeliQueue q) {
         (*outNode)->m_rivalsBlocked = inNode->m_rivalsBlocked;
         outNode = &(*outNode)->m_next;
     }
+    printf("Cloning queue\n");
     return out;
 }
 
@@ -213,6 +215,7 @@ void IsraeliQueueDestroy(IsraeliQueue q) {
     NodeDestroy(q->m_list);
 
     free(q->m_friendships);
+    printf("freed que\n");
     free(q);
 }
 

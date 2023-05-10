@@ -3,28 +3,10 @@
 #include <stdbool.h>
 #include <assert.h>
 
-#define BUFFER_SIZE 256
 #define COURSE_NUM_LEN 6
 #define SPACE_CHAR ' '
 
 #define MAX(X, Y) (((X) < (Y)) ? (X) : (Y))
-
-//helper functions
-int getLineNum(FILE* file)
-{
-    int lineNum = 0;
-    char buffer[BUFFER_SIZE] = { 0 };
-
-    while(fgets(buffer, BUFFER_SIZE, file))
-    {
-        lineNum++;
-    }
-
-    // Push the file pointer back to the start of the file.
-    fseek(file, 0, SEEK_SET);
-
-    return lineNum;
-}
 
 //counts elements using space amount
 int countElementsInLine(char* line)
@@ -40,6 +22,66 @@ int countElementsInLine(char* line)
     }
 
     return elementAmount;
+}
+
+// Reads a line of an unbounded length.
+char* readLine(FILE* input) {
+    char* line = NULL;
+    char* lineNew = NULL;
+    int lineLength = 0;
+    int lineCapacity = 0;
+    int character = 0;
+
+    if (feof(input)) {
+        return NULL;
+    }
+
+    for(character = fgetc(input); character != '\n' && character != EOF; character = fgetc(input)) {
+        // Allocate space if needed.
+        if (lineLength == lineCapacity) {
+            lineCapacity = MAX(lineCapacity * 2, 16);
+            lineNew = realloc(line, (lineCapacity + 1) * sizeof(char));
+            if (lineNew == NULL) {
+                free(line);
+                return NULL;
+            }
+            line = lineNew;
+        }
+
+        line[lineLength] = character;
+        lineLength++;
+    }
+
+    // Trim the string.
+    lineNew = realloc(line, (lineLength + 1) * sizeof(char));
+    if (lineNew == NULL) {
+        free(line);
+        return NULL;
+    }
+    line = lineNew;
+
+    // Terminate the string.
+    line[lineLength] = '\0';
+
+    return line;
+}
+
+//helper functions
+int getLineNum(FILE* file)
+{
+    int lineNum = 0;
+    char* line = NULL;
+
+    while(line = readLine(file))
+    {
+        lineNum++;
+        free(line);
+    }
+
+    // Push the file pointer back to the start of the file.
+    fseek(file, 0, SEEK_SET);
+
+    return lineNum;
 }
 
 //Frees up memory associated with a student.
@@ -179,37 +221,40 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 {
     int i = 0;
     bool error = false;
-    char mainBuffer[BUFFER_SIZE + 1] = { 0 };
+    char* line = NULL;
     char IDBuffer[ID_SIZE + 1] = { 0 };
     int credits = 0;
     int GPA = 0;
-    char nameBuffer[BUFFER_SIZE + 1] = { 0 };
-    char surnameBuffer[BUFFER_SIZE + 1] = { 0 };
-    char cityBuffer[BUFFER_SIZE + 1] = { 0 };
-    char departmentBuffer[BUFFER_SIZE + 1] = { 0 };
 
     int studentsAmount = getLineNum(studentsFile);
     Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
-
     if (!students) {
         return NULL;
     }
 
-    while(fgets(mainBuffer, BUFFER_SIZE, studentsFile)) {
+    while(line = readLine(studentsFile)) {
+        int lineLength = strlen(line);
+        char* nameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
+        char* surnameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
+        char* cityBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
+        char* departmentBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
+
         sscanf(
-            mainBuffer,
-            "%s %d %d %s %s %s %s",
-            IDBuffer, &credits, &GPA,
-            nameBuffer, surnameBuffer, cityBuffer, departmentBuffer
+            line, "%s %d %d %s %s %s %s",
+            IDBuffer, &credits, &GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer
         );
 
         students[i] = createStudent(
-            IDBuffer, credits, GPA,
-            nameBuffer, surnameBuffer, cityBuffer, departmentBuffer,
-            NULL
+            IDBuffer, credits, GPA, nameBuffer, surnameBuffer, cityBuffer, departmentBuffer, NULL
         );
         error = !students[i] ? true : error;
+
         i++;
+        free(line);
+        free(nameBuffer);
+        free(surnameBuffer);
+        free(cityBuffer);
+        free(departmentBuffer);
     }
 
     if (error) {
@@ -247,7 +292,7 @@ Course createCourse(int number, int size) {
 //parses the courses file and saves the information
 Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
 {
-    char buffer[BUFFER_SIZE + 1] = { 0 };
+    char* line = NULL;
     int i = 0;
     bool error = false;
     int number = 0;
@@ -260,12 +305,13 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
         return NULL;
     }
 
-    while(fgets(buffer, BUFFER_SIZE, coursesFile))
+    while(line = readLine(coursesFile))
     {
-        sscanf(buffer, "%d %d", &number, &size);
+        sscanf(line, "%d %d", &number, &size);
         courses[i] = createCourse(number, size);
         error = !courses[i] ? true : error;
         i++;
+        free(line);
     }
 
     if (error) {
@@ -354,10 +400,10 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
 Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSize)
 {
     bool error = false;
-    char IDBuffer[ID_SIZE + 1] = { 0 };
-    char coursesBuffer[BUFFER_SIZE + 1] = { 0 };
-    char friendsBuffer[BUFFER_SIZE + 1] = { 0 };
-    char rivalsBuffer[BUFFER_SIZE + 1] = { 0 };
+    char* IDBuffer = NULL;
+    char* coursesBuffer = NULL;
+    char* friendsBuffer = NULL;
+    char* rivalsBuffer = NULL;
 
     int hackersAmount = getLineNum(hackersFile) / 4;
     Hacker* hackers = (Hacker*)malloc(sizeof(Hacker) * hackersAmount);
@@ -366,13 +412,18 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     }
 
     for(int i = 0; i < hackersAmount; i++) {
-        fgets(IDBuffer, ID_SIZE + 1, hackersFile);  
-        fgets(coursesBuffer, BUFFER_SIZE, hackersFile);  
-        fgets(friendsBuffer, BUFFER_SIZE, hackersFile);  
-        fgets(rivalsBuffer, BUFFER_SIZE, hackersFile);  
+        IDBuffer = readLine(hackersFile);
+        coursesBuffer = readLine(hackersFile);
+        friendsBuffer = readLine(hackersFile);
+        rivalsBuffer = readLine(hackersFile);
 
         hackers[i] = parseHacker(sys, IDBuffer, coursesBuffer, friendsBuffer, rivalsBuffer);
         error = !hackers[i] ? true : error;
+
+        free(IDBuffer);
+        free(coursesBuffer);
+        free(friendsBuffer);
+        free(rivalsBuffer);
     }
 
     if (error) {
@@ -553,22 +604,26 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
 
 EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 {
-    char buffer[BUFFER_SIZE + 1] = { 0 };
-    char tempBuffer[ID_SIZE + 1] = { 0 };
+    char* line = NULL;
+    char IDBuffer[ID_SIZE + 1] = { 0 };
     int courseNum = 0;
+    int elements = 0;
     Course course = { 0 };
 
-    while(fgets(buffer, BUFFER_SIZE, queues))
+    while(line = readLine(queues))
     {
-        sscanf(buffer, "%d", &courseNum);
+        sscanf(line, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);
-        for(int j = 0; j < countElementsInLine(buffer) - 1; j++)
+        elements = countElementsInLine(line);
+        for(int j = 0; j < elements - 1; j++)
         {
-            memcpy(tempBuffer, buffer + COURSE_NUM_LEN + 1 + j * (ID_SIZE + 1), ID_SIZE);
-            if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, tempBuffer)) != ISRAELIQUEUE_SUCCESS) {
+            memcpy(IDBuffer, line + COURSE_NUM_LEN + 1 + j * (ID_SIZE + 1), ID_SIZE);
+            if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, IDBuffer)) != ISRAELIQUEUE_SUCCESS) {
                 return NULL;
             }
         }
+
+        free(line);
     }
 
     return sys;

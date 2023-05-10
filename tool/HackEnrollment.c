@@ -664,6 +664,10 @@ void printSuccess(EnrollmentSystem sys, FILE* out) {
 
     for(int i = 0; i < sys->m_coursesSize; i++)
     {
+        if (sys->m_courses[i]->m_queue->m_size == 0) {
+            continue;
+        }
+
         fprintf(out, "%d", sys->m_courses[i]->m_number);
         tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
         student = IsraeliQueueDequeue(tempQueue);

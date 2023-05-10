@@ -72,7 +72,7 @@ int getLineNum(FILE* file)
     int lineNum = 0;
     char* line = NULL;
 
-    while(line = readLine(file))
+    while((line = readLine(file)))
     {
         lineNum++;
         free(line);
@@ -232,7 +232,7 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
         return NULL;
     }
 
-    while(line = readLine(studentsFile)) {
+    while((line = readLine(studentsFile))) {
         int lineLength = strlen(line);
         char* nameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
         char* surnameBuffer = (char*)malloc(sizeof(char) * (lineLength + 1));
@@ -305,7 +305,7 @@ Course* parseCoursesFile(FILE* coursesFile, int* coursesSize)
         return NULL;
     }
 
-    while(line = readLine(coursesFile))
+    while((line = readLine(coursesFile)))
     {
         sscanf(line, "%d %d", &number, &size);
         courses[i] = createCourse(number, size);
@@ -610,7 +610,7 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
     int elements = 0;
     Course course = { 0 };
 
-    while(line = readLine(queues))
+    while((line = readLine(queues)))
     {
         sscanf(line, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);

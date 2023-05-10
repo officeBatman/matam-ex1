@@ -1,0 +1,9 @@
+in this test we are checking for double counts for a hacker
+there is one hacker and he wants two courses
+he is already in the first course he wants and after enqueueing
+will be there twice, but should be only counted once into the 
+"total courses gotten count"
+he will not be able to get into the second course because
+he has a lot of enemies in the line
+so in total he got 1 out of 2 courses he wanted,
+which should return "cannot satify constraints"

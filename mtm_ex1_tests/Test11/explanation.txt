@@ -1,0 +1,4 @@
+a bunch of tests in one:
+some of the queues are empty before hackers start hacking,
+queues are re-organized in output according to their appereance in courses list
+enough room for all the hackers in the courses

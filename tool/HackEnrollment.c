@@ -618,6 +618,7 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers)
 EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 {
     char* line = NULL;
+    char* lineAfterCourse = NULL;
     char IDBuffer[ID_SIZE + 1] = { 0 };
     int courseNum = 0;
     int elements = 0;
@@ -628,11 +629,10 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
         sscanf(line, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);
         elements = countElementsInLine(line);
-        // Move the line to after the course number.
-        line = strchr(line, ' ') + 1;
+        lineAfterCourse = strchr(line, ' ') + 1;
         for(int j = 0; j < elements - 1; j++)
         {
-            memcpy(IDBuffer, line + j * (ID_SIZE + 1), ID_SIZE);
+            memcpy(IDBuffer, lineAfterCourse + j * (ID_SIZE + 1), ID_SIZE);
             if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, IDBuffer)) != ISRAELIQUEUE_SUCCESS) {
                 return NULL;
             }

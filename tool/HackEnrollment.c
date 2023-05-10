@@ -374,7 +374,7 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
     int i = 0;
 
     sscanf(IDBuffer, "%s", tempIDBuffer);
-    student = getStudentFromID(sys, tempBuffer);
+    student = getStudentFromID(sys, tempIDBuffer);
 
     courses = countElementsInLine(coursesBuffer);
     friends = countElementsInLine(friendsBuffer);

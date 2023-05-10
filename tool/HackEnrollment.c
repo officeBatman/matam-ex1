@@ -11,6 +11,10 @@
 //counts elements using space amount
 int countElementsInLine(char* line)
 {
+    if (strcmp(line, "") == 0) {
+        return 0;
+    }
+
     int elementAmount = 1;
     while(*line)
     {

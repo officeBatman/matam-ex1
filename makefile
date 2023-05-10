@@ -2,7 +2,7 @@ CC = gcc
 OBJS = IsraeliQueue.o HackEnrollment.o main.o
 EXEC = HackEnrollment
 DEBUG_FLAG = #empty, -g for debug
-DIR = /home/mtm/public/2223b/ex1
+DIR = /new_home/courses/mtm/public/2223b/ex1
 CFLAGS = -std=c99 -lm -I$(DIR) -Itool -Wall -pedantic-errors -Werror -DNDEBUG
 COMP_TOOL = $(CC) $(DEBUG_FLAG) $(CFLAGS) -c tool/$*.c -o $@
 

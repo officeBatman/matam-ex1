@@ -576,6 +576,7 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
+    Student student = NULL;
     Hacker hacker = NULL;
     Course course = NULL;
     IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
@@ -637,9 +638,11 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
     {
         fprintf(out, "%d", sys->m_courses[i]->m_number);
         tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
-        while(tempQueue)
+        student = IsraeliQueueDequeue(tempQueue);
+        while(student)
         {
-            fprintf(out, " %s", (*(Student*)IsraeliQueueDequeue(tempQueue))->m_ID);
+            fprintf(out, " %s", student->m_ID);
+            student = IsraeliQueueDequeue(tempQueue);
         }
         fprintf(out, "\n");
     }

@@ -664,13 +664,16 @@ void printSuccess(EnrollmentSystem sys, FILE* out) {
 
     for(int i = 0; i < sys->m_coursesSize; i++)
     {
-        if (sys->m_courses[i]->m_queue->m_size == 0) {
+        // Clone the queue and get the first student.
+        tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
+        student = IsraeliQueueDequeue(tempQueue);
+
+        // Only continue if there are students in the queue.
+        if (!student) {
             continue;
         }
 
         fprintf(out, "%d", sys->m_courses[i]->m_number);
-        tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
-        student = IsraeliQueueDequeue(tempQueue);
         while(student)
         {
             fprintf(out, " %s", student->m_ID);

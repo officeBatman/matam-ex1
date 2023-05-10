@@ -83,6 +83,7 @@ int main(int argc, const char *argv[]) {
     setCaseSensitive(system, caseSensitive);
     readEnrollment(system, files.queues);
     hackEnrollment(system, files.target);
+    destroyEnrollment(system);
 
     closeFiles(files);
 

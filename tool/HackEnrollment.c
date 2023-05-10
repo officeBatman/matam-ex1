@@ -228,7 +228,6 @@ void destroyStudentsArray(Student* students, int size) {
     for (int i = 0; i < size; i++) {
         destroyStudent(students[i]);
     }
-    free(students);
 }
 
 //parses the students file and saves the information
@@ -277,6 +276,7 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 
     if (error) {
         destroyStudentsArray(students, studentsAmount);
+        free(students);
         return NULL;
     }
 
@@ -763,7 +763,9 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
     }
     free(enrollment->m_courses);
     destroyStudentsArray(enrollment->m_students, enrollment->m_studentsSize);
+    free(enrollment->m_students);
     destroyHackersArray(enrollment->m_hackers, enrollment->m_hackersSize);
+    free(enrollment->m_hackers);
 
     // It's good practice to NULL dangling pointers.
     enrollment->m_students = NULL;

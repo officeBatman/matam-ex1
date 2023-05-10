@@ -157,7 +157,7 @@ Student createStudent(char ID[ID_SIZE + 1], int credits, int GPA, char* name,
         return NULL;
     }
 
-    memcpy(out->m_ID, ID, ID_SIZE + 1);
+    strcpy(out->m_ID, ID);
     out->m_credits = credits;
     out->m_GPA = GPA;
     out->m_name = cloneString(name);
@@ -366,7 +366,7 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     }
 
     for(int i = 0; i < hackersAmount; i++) {
-        fgets(IDBuffer, ID_SIZE, hackersFile);  
+        fgets(IDBuffer, ID_SIZE + 1, hackersFile);  
         fgets(coursesBuffer, BUFFER_SIZE, hackersFile);  
         fgets(friendsBuffer, BUFFER_SIZE, hackersFile);  
         fgets(rivalsBuffer, BUFFER_SIZE, hackersFile);  

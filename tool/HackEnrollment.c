@@ -389,7 +389,9 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
     char* current = coursesBuffer;
     for(i = 0; i < courses; i++) {
         char* space = strchr(current, ' ');
-        *space = '\0';
+        if (space) {
+            *space = '\0';
+        }
         strcpy(tempCourseBuffer, current);
         hacker->m_courses[i] = getCourseFromNum(sys, atoi(tempCourseBuffer));
         current = space + 1;

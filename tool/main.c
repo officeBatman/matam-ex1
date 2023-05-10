@@ -66,7 +66,7 @@ int main(int argc, const char *argv[]) {
     }
 
     if (argc == NUM_REQUIRED_ARGS + 2) {
-        if (strcmp(primaryArgs[1], "-i") != 0) {
+        if (strcmp(primaryArgs[0], "-i") != 0) {
             printUsageError(commandName);
             return 0;
         }

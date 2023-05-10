@@ -129,7 +129,7 @@ void destroyHacker(Hacker hacker) {
     free(hacker);
 }
 
-void destroyHackers(Hacker* hackers, int hackerAmount) {
+void destroyHackersArray(Hacker* hackers, int hackerAmount) {
     for(int i = 0; i  < hackerAmount; i++)
     {
         destroyHacker(hackers[i]);
@@ -224,15 +224,20 @@ Student createStudent(char ID[ID_SIZE + 1], int credits, int GPA, char* name,
     return out;
 }
 
+void destroyStudentsArray(Student* students, int size) {
+    for (int i = 0; i < size; i++) {
+        destroyStudent(students[i]);
+    }
+    free(students);
+}
+
 //parses the students file and saves the information
 Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
 {
-    int i = 0;
     bool error = false;
     char* line = NULL;
     char IDBuffer[ID_SIZE + 1] = { 0 };
-    int credits = 0;
-    int GPA = 0;
+    int credits = 0, GPA = 0, i = 0;
 
     int studentsAmount = getLineNum(studentsFile);
     Student* students = (Student*)malloc(sizeof(Student) * studentsAmount);
@@ -271,10 +276,7 @@ Student* parseStudentsFile(FILE* studentsFile, int* studentsSize)
     }
 
     if (error) {
-        for (i = 0; i < studentsAmount; i++) {
-            destroyStudent(students[i]);
-        }
-        free(students);
+        destroyStudentsArray(students, studentsAmount);
         return NULL;
     }
 
@@ -368,7 +370,9 @@ Hacker createHacker(Student student, int courses, int friends, int rivals) {
     return out;
 }
 
-Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, char* friendsBuffer, char* rivalsBuffer) {
+Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer,
+                   char* friendsBuffer, char* rivalsBuffer)
+{
     Hacker hacker = NULL;
     char* tempCourseBuffer = (char*)calloc(strlen(coursesBuffer) + 1, sizeof(char));
     char tempIDBuffer[ID_SIZE + 1] = { 0 };
@@ -447,7 +451,7 @@ Hacker* parseHackersFile(EnrollmentSystem sys, FILE* hackersFile, int* hackersSi
     }
 
     if (error) {
-        destroyHackers(hackers, hackersAmount);
+        destroyHackersArray(hackers, hackersAmount);
         return NULL;
     }
 
@@ -728,7 +732,8 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
         else {
             for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++) {
-                coursesDeclined = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[j]) ? coursesDeclined : coursesDeclined + 1;
+                coursesDeclined = isInCourse(sys->m_hackers[i]->m_student, sys->m_hackers[i]->m_courses[j]) ?
+                    coursesDeclined : coursesDeclined + 1;
             }
 
             success = coursesDeclined < 2;
@@ -752,20 +757,13 @@ void destroyEnrollment(EnrollmentSystem enrollment) {
         return;
     }
 
-    for (i = 0; i < enrollment->m_studentsSize; i++) {
-        destroyStudent(enrollment->m_students[i]);
-    }
-    free(enrollment->m_students);
 
     for (i = 0; i < enrollment->m_coursesSize; i++) {
         destroyCourse(enrollment->m_courses[i]);
     }
     free(enrollment->m_courses);
-
-    for (i = 0; i < enrollment->m_hackersSize; i++) {
-        destroyHacker(enrollment->m_hackers[i]);
-    }
-    free(enrollment->m_hackers);
+    destroyStudentsArray(enrollment->m_students, enrollment->m_studentsSize);
+    destroyHackersArray(enrollment->m_hackers, enrollment->m_hackersSize);
 
     // It's good practice to NULL dangling pointers.
     enrollment->m_students = NULL;

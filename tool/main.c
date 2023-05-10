@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "HackerEnrollment.h"
+#include "HackEnrollment.h"
 
 #define NUM_REQUIRED_ARGS 5
 

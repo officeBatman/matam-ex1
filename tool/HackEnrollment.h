@@ -1,5 +1,5 @@
-#ifndef HACKER_ENROLLMENT_H_
-#define HACKER_ENROLLMENT_H_
+#ifndef HACK_ENROLLMENT_H_
+#define HACK_ENROLLMENT_H_
 
 
 #include <stdlib.h>
@@ -62,8 +62,7 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues);
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out);
 
-/* Frees up all the memory associated with the given EnrollmentSystem instance.
- */
+//Frees up all the memory associated with the given EnrollmentSystem instance
 void destroyEnrollment(EnrollmentSystem enrollment);
 
 void setCaseSensitive(EnrollmentSystem system, bool caseSensitive);

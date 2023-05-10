@@ -670,6 +670,7 @@ void printSuccess(EnrollmentSystem sys, FILE* out) {
 
         // Only continue if there are students in the queue.
         if (!student) {
+            IsraeliQueueDestroy(tempQueue);
             continue;
         }
 

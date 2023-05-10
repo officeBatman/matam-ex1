@@ -195,11 +195,24 @@ IsraeliQueue IsraeliQueueClone(IsraeliQueue q) {
     return out;
 }
 
+void NodeDestroy(Node n) {
+    if (!n) {
+        return;
+    }
+
+    NodeDestroy(n->m_next);
+    free(n);
+}
+
 void IsraeliQueueDestroy(IsraeliQueue q) {
+    Node curr = NULL;
+
     // Exit early if the queue is already NULL.
     if (!q) {
         return;
     }
+
+    NodeDestroy(q->m_list);
 
     free(q->m_friendships);
     free(q);

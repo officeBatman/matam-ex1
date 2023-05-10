@@ -137,6 +137,7 @@ void NodeInsertAfter(Node* insertAfter, Node* toInsertPtr, FriendStatus status) 
 
     if (*insertAfter == NULL) {
         *insertAfter = *toInsertPtr;
+        return;
     }
 
     /* TODO:
@@ -182,7 +183,16 @@ IsraeliQueue IsraeliQueueCreate(FriendshipFunction* friendships, ComparisonFunct
 }
 
 IsraeliQueue IsraeliQueueClone(IsraeliQueue q) {
-    return IsraeliQueueCreate(q->m_friendships, q->m_compare, q->m_friendshipThreshold, q->m_rivalryThreshold);
+    IsraeliQueue out = IsraeliQueueCreate(q->m_friendships, q->m_compare, q->m_friendshipThreshold, q->m_rivalryThreshold);
+    // Clone over the data.
+    Node* outNode = &out->m_list;
+    for (Node inNode = q->m_list; inNode != NULL; inNode = inNode->m_next) {
+        *outNode = NodeCreate(inNode->m_data, NULL);
+        (*outNode)->m_friendsCalledOver = inNode->m_friendsCalledOver;
+        (*outNode)->m_rivalsBlocked = inNode->m_rivalsBlocked;
+        outNode = &(*outNode)->m_next;
+    }
+    return out;
 }
 
 void IsraeliQueueDestroy(IsraeliQueue q) {

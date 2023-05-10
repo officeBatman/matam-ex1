@@ -330,6 +330,8 @@ Hacker parseHacker(EnrollmentSystem sys, char* IDBuffer, char* coursesBuffer, ch
         return NULL;
     }
 
+    // Set a zero a the end of the next strings that will be in the buffer.
+    tempBuffer[COURSE_NUM_LEN] = '\0';
     for(i = 0; i < courses; i++) {
         memcpy(tempBuffer, coursesBuffer + i * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
         hacker->m_courses[i] = getCourseFromNum(sys, atoi(tempBuffer));
@@ -413,8 +415,8 @@ bool checkRival(Hacker hacker, Student student)
 //friendship functions
 int friendshipFunction1(void* person1, void* person2)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
     
     int friendship = 0; 
 
@@ -474,8 +476,8 @@ int stringDiff(const char* str1, const char* str2, bool caseSensitive) {
 
 int friendshipFunction2(void* person1, void* person2, bool caseSensitive)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
 
     int nameDiff = 0;
 
@@ -495,8 +497,8 @@ int friendshipFunction2Insensitive(void* person1, void* person2) {
 
 int friendshipFunction3(void* person1, void* person2)
 {
-    Student person1Student = *(Student*)person1;
-    Student person2Student = *(Student*)person2;
+    Student person1Student = (Student)person1;
+    Student person2Student = (Student)person2;
 
     return abs(atoi(person1Student->m_ID) - atoi(person2Student->m_ID));
 }
@@ -507,7 +509,7 @@ bool isInCourse(Student student, Course course)
     int studentsNum = course->m_size;
     while(queue && studentsNum > 0)
     {
-        if(strcmp((*((Student*)IsraeliQueueDequeue(queue)))->m_ID, student->m_ID) == 0)
+        if(strcmp(((Student)IsraeliQueueDequeue(queue))->m_ID, student->m_ID) == 0)
         {
             IsraeliQueueDestroy(queue);
             return true;
@@ -560,9 +562,9 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
     {
         sscanf(buffer, "%d", &courseNum);
         course = getCourseFromNum(sys, courseNum);
-        for(int j = 1; j < countElementsInLine(buffer); j++)
+        for(int j = 0; j < countElementsInLine(buffer) - 1; j++)
         {
-            memcpy(tempBuffer, buffer + j * (COURSE_NUM_LEN + 1), COURSE_NUM_LEN);
+            memcpy(tempBuffer, buffer + COURSE_NUM_LEN + 1 + j * (ID_SIZE + 1), ID_SIZE);
             if (IsraeliQueueEnqueue(course->m_queue, getStudentFromID(sys, tempBuffer)) != ISRAELIQUEUE_SUCCESS) {
                 return NULL;
             }
@@ -574,6 +576,8 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
+    Hacker hacker = NULL;
+    Course course = NULL;
     IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
 
     for(int i = 0; i < sys->m_coursesSize; i++)
@@ -590,11 +594,14 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
     }
 
+    // Insert the hackers into the queue.
     for(int i = 0; i < sys->m_hackersSize; i++)
     {
-        for(int j = 0; j < sys->m_hackers[i]->m_coursesSize; j++)
+        hacker = sys->m_hackers[i];
+        for(int j = 0; j < hacker->m_coursesSize; j++)
         {
-            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue((sys->m_hackers[i]->m_courses[j])->m_queue, sys->m_hackers[i])) {
+            course = hacker->m_courses[j];
+            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue(course->m_queue, hacker->m_student)) {
                 return;
             }
         }

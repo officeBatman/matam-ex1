@@ -574,6 +574,44 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues)
     return sys;
 }
 
+bool enqueueHackers(EnrollmentSystem sys) {
+    Hacker hacker = NULL;
+    Course course = NULL;
+
+    // Insert the hackers into the queue.
+    for(int i = 0; i < sys->m_hackersSize; i++)
+    {
+        hacker = sys->m_hackers[i];
+        for(int j = 0; j < hacker->m_coursesSize; j++)
+        {
+            course = hacker->m_courses[j];
+            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue(course->m_queue, hacker->m_student)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+void checkSuccess(EnrollmentSystem sys, FILE* out) {
+    Student student = NULL;
+    IsraeliQueue tempQueue = { 0 };
+
+    for(int i = 0; i < sys->m_coursesSize; i++)
+    {
+        fprintf(out, "%d", sys->m_courses[i]->m_number);
+        tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
+        student = IsraeliQueueDequeue(tempQueue);
+        while(student)
+        {
+            fprintf(out, " %s", student->m_ID);
+            student = IsraeliQueueDequeue(tempQueue);
+        }
+        fprintf(out, "\n");
+    }
+}
+
 void hackEnrollment(EnrollmentSystem sys, FILE* out)
 {
     IsraeliQueueError error = ISRAELIQUEUE_SUCCESS;
@@ -616,44 +654,6 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
     }
 
     checkSuccess(sys, out);
-}
-
-bool enqueueHackers(EnrollmentSystem sys) {
-    Hacker hacker = NULL;
-    Course course = NULL;
-
-    // Insert the hackers into the queue.
-    for(int i = 0; i < sys->m_hackersSize; i++)
-    {
-        hacker = sys->m_hackers[i];
-        for(int j = 0; j < hacker->m_coursesSize; j++)
-        {
-            course = hacker->m_courses[j];
-            if (ISRAELIQUEUE_SUCCESS != IsraeliQueueEnqueue(course->m_queue, hacker->m_student)) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-void checkSuccess(EnrollmentSystem sys, FILE* out) {
-    Student student = NULL;
-    IsraeliQueue tempQueue = { 0 };
-
-    for(int i = 0; i < sys->m_coursesSize; i++)
-    {
-        fprintf(out, "%d", sys->m_courses[i]->m_number);
-        tempQueue = IsraeliQueueClone(sys->m_courses[i]->m_queue);
-        student = IsraeliQueueDequeue(tempQueue);
-        while(student)
-        {
-            fprintf(out, " %s", student->m_ID);
-            student = IsraeliQueueDequeue(tempQueue);
-        }
-        fprintf(out, "\n");
-    }
 }
 
 void destroyEnrollment(EnrollmentSystem enrollment) {

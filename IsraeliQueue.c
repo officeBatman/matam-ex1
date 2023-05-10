@@ -74,7 +74,7 @@ FriendStatus getFriendshipStatus(IsraeliQueue q, void* data1, void* data2) {
     }
 
     // Check if the objects are enemies.
-    float friendshipAverage = (float)friendshipSum / q->m_friendshipsLength;
+    float friendshipAverage = ((float)friendshipSum) / q->m_friendshipsLength;
     if (friendshipAverage < q->m_rivalryThreshold) {
         return RIVAL;
     }
@@ -324,8 +324,8 @@ IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue q) {
 typedef struct MergeRet {
     FriendshipFunction* friendshipFunctions;
     int friendshipFunctionsSize;
-    float friendshipThreshold;
-    float rivalThreshold;
+    int friendshipThreshold;
+    int rivalThreshold;
     bool error;
 } MergeRet;
 
@@ -349,8 +349,8 @@ MergeRet MergeFriendshipsAndThresholds(IsraeliQueue* qarr) {
     }
     
     // Initialize friendship array, and thresholds.
-    float friendshipThreshold = 0;
-    float rivalryThreshold = 0;
+    int friendshipThreshold = 0;
+    int rivalryThreshold = 0;
     for (i = 0; qarr[i]; i++) {
         friendshipThreshold += qarr[i]->m_friendshipThreshold;
         rivalryThreshold += qarr[i]->m_rivalryThreshold;

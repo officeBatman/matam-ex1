@@ -1,5 +1,5 @@
 CC = gcc
-OBJS = IsraeliQueue.o HackEnrollment.o main.o
+OBJS = HackEnrollment.o main.o
 EXEC = HackEnrollment
 DEBUG_FLAG = #empty, -g for debug
 DIR = /new_home/courses/mtm/public/2223b/ex1
@@ -9,9 +9,9 @@ COMP_TOOL = $(CC) $(DEBUG_FLAG) $(CFLAGS) -c tool/$*.c -o $@
 program: $(OBJS)
 	$(CC) $(DEBUG_FLAG) $(CFLAGS) $(OBJS) -o $(EXEC)
 
-IsraeliQueue.o: IsraeliQueue.c $(DIR)/IsraeliQueue.h
+IsraeliQueue.o: IsraeliQueue.c
 
-HackEnrollment.o: tool/HackEnrollment.c tool/HackEnrollment.h $(DIR)/IsraeliQueue.h
+HackEnrollment.o: tool/HackEnrollment.c tool/HackEnrollment.h
 	$(COMP_TOOL)
 
 main.o: tool/HackEnrollment.h

@@ -654,7 +654,7 @@ bool enqueueHackers(EnrollmentSystem sys) {
     return true;
 }
 
-void checkSuccess(EnrollmentSystem sys, FILE* out) {
+void printSuccess(EnrollmentSystem sys, FILE* out) {
     Student student = NULL;
     IsraeliQueue tempQueue = { 0 };
 
@@ -710,12 +710,13 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out)
         }
         
         if(!success) {
-            fprintf(out, "Cannot satisfy constraints for %s", sys->m_hackers[i]->m_student->m_ID);
+            fprintf(out, "Cannot satisfy constraints for %s\n", sys->m_hackers[i]->m_student->m_ID);
+            return;
         }
         coursesDeclined = 0;
     }
 
-    checkSuccess(sys, out);
+    printSuccess(sys, out);
 }
 
 void destroyEnrollment(EnrollmentSystem enrollment) {

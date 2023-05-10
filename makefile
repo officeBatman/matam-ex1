@@ -14,7 +14,7 @@ IsraeliQueue.o: IsraeliQueue.h IsraeliQueue.c
 HackEnrollment.o: tool/HackEnrollment.c tool/HackEnrollment.h IsraeliQueue.h
 	$(COMP_TOOL)
 
-main.o: tool/main.h
+main.o: tool/main.c
 	$(COMP_TOOL)
 
 clean:
